@@ -1,0 +1,45 @@
+# Disable Grafana since we install it via official Grafana Labs Helm chart
+grafana:
+  enabled: false
+# Disable kube-proxy because we use Cilium KPR
+kubeProxy:
+  enabled: false
+# The following components are disable because we didn't configure kubeadm to expose those metric endpoints to far:
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
+nodeExporter:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/infra
+            operator: Exists
+kube-state-metrics:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/infra
+            operator: Exists
+  tolerations:
+  - key: node-role.kubernetes.io/infra
+    operator: Exists
+    effect: NoSchedule
+prometheusOperator:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/infra
+            operator: Exists
+  tolerations:
+  - key: node-role.kubernetes.io/infra
+    operator: Exists
+    effect: NoSchedule

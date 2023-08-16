@@ -1,0 +1,165 @@
+# -- Generic Cilium Agent Configurations
+
+# -- Enable/disable debug logging
+#debug:
+  #enabled: true
+  # -- Configure verbosity levels for debug logging
+  # Applicable values:
+  # - flow
+  # - kvstore
+  # - envoy
+  # - datapath
+  # - policy
+  #verbose: ~
+
+# Configure unique cluster name & ID (used for ClusterMesh in the future)
+cluster:
+  name: ${CLUSTER_NAME}
+  id: ${CLUSTER_ID}
+
+# Configure IPAM/PodCIDR
+ipam:
+  mode: cluster-pool
+  operator:
+    clusterPoolIPv4PodCIDRList:
+    - ${POD_CIDR}
+    clusterPoolIPv4MaskSize: 24
+
+# Routing/encapsulation mode
+tunnel: vxlan
+
+# KubeProxyReplacement
+kubeProxyReplacement: "strict"
+k8sServiceHost: ${KUBE_APISERVER_HOST}
+k8sServicePort: ${KUBE_APISERVER_PORT}
+kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
+
+# Enable support for Gateway API
+gatewayAPI:
+  enabled: true
+
+# -- Enable transparent network encryption.
+encryption:
+  enabled: true
+  type: wireguard
+
+# -- Configure the host firewall.
+hostFirewall:
+  enabled: true
+
+# -- Monitoring and Flow Visibility
+
+# Enable Cilium Hubble to gain visibility
+hubble:
+  enabled: true
+  metrics:
+    enableOpenMetrics: true
+    # https://docs.cilium.io/en/stable/observability/metrics/#hubble-exported-metrics
+    enabled:
+    - dns
+    - drop
+    - tcp
+    - flow
+    - port-distribution
+    - icmp
+    - httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction
+    serviceMonitor:
+      enabled: true
+    dashboards:
+      enabled: true
+      annotations:
+        grafana_folder: "Hubble Dashboards"
+  tls:
+    enabled: true
+    auto:
+      enabled: true
+      method: certmanager
+      certManagerIssuerRef:
+        group: cert-manager.io
+        kind: Issuer
+        name: cilium
+  relay:
+    enabled: true
+    tls:
+      server:
+        enabled: true
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: node-role.kubernetes.io/infra
+              operator: Exists
+    tolerations:
+    - key: node-role.kubernetes.io/infra
+      operator: Exists
+      effect: NoSchedule
+    prometheus:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+  ui:
+    enabled: true
+    frontend:
+      server:
+        ipv6:
+          enabled: false
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: node-role.kubernetes.io/infra
+              operator: Exists
+    tolerations:
+    - key: node-role.kubernetes.io/infra
+      operator: Exists
+      effect: NoSchedule
+    ingress:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: $CLUSTERISSUER_NAME
+      className: nginx
+      hosts:
+      - $HUBBLE_UI_URL
+      tls:
+      - secretName: hubble-ui-tls
+        hosts:
+        - $HUBBLE_UI_URL
+
+# Enable Cilium Operator metrics
+operator:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchLabels:
+            io.cilium/app: operator
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/infra
+            operator: Exists
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+# Operator Dashboards
+  dashboards:
+    enabled: true
+    annotations:
+      grafana_folder: "Cilium Operator Dashboards"
+
+# Enable Cilium Agent metrics
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+
+# Cilium Agent Dashboards
+dashboards:
+ enabled: true
+ annotations:
+   grafana_folder: "Cilium Agent Dashboards"

@@ -1,0 +1,10 @@
+.terraform/
+.terraform.lock.hcl
+.terraform.tfstate*
+terraform.tfstate*
+tf/
+.timestamp
+terraform.tfvars
+.terraform.tfstate.lock.info
+.DS_Store
+cilium-ca*

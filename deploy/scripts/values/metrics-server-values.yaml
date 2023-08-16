@@ -1,0 +1,14 @@
+# Passing "--kubelet-insecure-tls" is a dirty hack! Follow https://particule.io/en/blog/kubeadm-metrics-server/, https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/#kubelet-serving-certs and https://github.com/postfinance/kubelet-csr-approver for a prod cluster.
+args:
+- --kubelet-insecure-tls
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node-role.kubernetes.io/infra
+          operator: Exists
+tolerations:
+- key: node-role.kubernetes.io/infra
+  operator: Exists
+  effect: NoSchedule

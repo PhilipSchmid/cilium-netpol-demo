@@ -1,0 +1,32 @@
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    searchNamespace: ALL
+    folderAnnotation: grafana_folder
+    provider:
+      foldersFromFilesStructure: true
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: prometheus
+      type: prometheus
+      url: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local.:9090
+      access: proxy
+      isDefault: true
+persistence:
+  enabled: true
+  size: 1Gi
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node-role.kubernetes.io/infra
+          operator: Exists
+tolerations:
+- key: node-role.kubernetes.io/infra
+  operator: Exists
+  effect: NoSchedule
