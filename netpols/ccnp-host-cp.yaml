@@ -1,0 +1,34 @@
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "host-cp"
+spec:
+  description: "Cilium host policy set for CP nodes"
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/control-plane: ""
+  ingress:
+  # Kubernetes control plane connectivity from external and nodes
+  - fromEntities:
+    - host
+    - remote-node
+    - world
+    # Check if required or not for Pods to reach the KAPI:
+    #- cluster
+    toPorts:
+    - ports:
+        # Kubernetes API
+      - port: "6443"
+        protocol: TCP
+  # ETCD control plane connectivity from nodes
+  - fromEntities:
+    - host
+    - remote-node
+    toPorts:
+      - ports:
+          # etcd client port
+        - port: "2379"
+          protocol: TCP
+          # etcd peer communication port
+        - port: "2380"
+          protocol: TCP
