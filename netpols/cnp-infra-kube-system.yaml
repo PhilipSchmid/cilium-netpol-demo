@@ -1,0 +1,50 @@
+# -- Default rule
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-to-everywhere
+  namespace: kube-system
+spec:
+  description: Allow ingress traffic within the namespace and egress to everywhere
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  egress:
+  - toEntities:
+    - all
+# -- Ingress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-to-coredns
+  namespace: kube-system
+spec:
+  description: Allow ingress to coredns from everywhere
+  endpointSelector:
+    matchLabels:
+      k8s:io.kubernetes.pod.namespace: kube-system
+      k8s:k8s-app: kube-dns
+  ingress:
+  - toPorts:
+    - ports:
+      - port: "53"
+        protocol: ANY
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: nginx-to-service
+  namespace: kube-system
+spec:
+  description: Allow Nginx ingress controller to access the Hubble-UI service
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: hubble-ui
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        k8s:app.kubernetes.io/name: ingress-nginx
+        k8s:io.kubernetes.pod.namespace: ingress-nginx

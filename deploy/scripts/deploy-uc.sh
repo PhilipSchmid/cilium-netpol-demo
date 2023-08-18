@@ -120,6 +120,49 @@ prometheus:
       operator: Exists
       effect: NoSchedule
 alertmanager:
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url: 'https://hooks.slack.com/services/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'
+    inhibit_rules:
+      - source_matchers:
+          - 'severity = critical'
+        target_matchers:
+          - 'severity =~ warning|info'
+        equal:
+          - 'namespace'
+          - 'alertname'
+      - source_matchers:
+          - 'severity = warning'
+        target_matchers:
+          - 'severity = info'
+        equal:
+          - 'namespace'
+          - 'alertname'
+      - source_matchers:
+          - 'alertname = InfoInhibitor'
+        target_matchers:
+          - 'severity = info'
+        equal:
+          - 'namespace'
+    route:
+      group_by: ['namespace']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      receiver: 'slack-notifications'
+      routes:
+      - receiver: 'null'
+        matchers:
+          - alertname =~ "InfoInhibitor|Watchdog"
+    receivers:
+    - name: 'null'
+    - name: 'slack-notifications'
+      slack_configs:
+      - channel: '#monitoring'
+        send_resolved: true
+    templates:
+    - '/etc/alertmanager/config/*.tmpl'
   ingress:
     enabled: true
     ingressClassName: nginx
@@ -168,8 +211,12 @@ controller:
   ingressClass: nginx
   watchIngressWithoutClass: true
 
-  hostNetwork: true
   kind: "DaemonSet"
+  hostPort:
+    enabled: true
+    ports:
+      http: 80
+      https: 443
 
   tolerations:
   - key: node-role.kubernetes.io/infra
@@ -219,7 +266,7 @@ controller:
 EOF
 
 # Deploy Star Wars demo:
-kubectl apply $(ls ./manifests/start-wars-demo/* | awk ' { print " -f " $1 } ')
+#kubectl apply $(ls ./manifests/start-wars-demo/* | awk ' { print " -f " $1 } ')
 
 # Deploy Goldpinger:
 kubectl apply $(ls ./manifests/goldpinger/* | awk ' { print " -f " $1 } ')

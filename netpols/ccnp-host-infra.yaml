@@ -1,17 +1,15 @@
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: "host-infra"
+  name: host-infra
 spec:
-  description: "Cilium host policy set for infra nodes"
+  description: Cilium host policy set for infra nodes
   nodeSelector:
     matchLabels:
       node-role.kubernetes.io/infra: ""
   ingress:
-  # Data plane connectivity from external to ingress controller
-  - fromEntities:
-    - all
-    toPorts:
+  # Data plane connectivity from everywhere to Nginx ingress controller
+  - toPorts:
     - ports:
         # Ingress HTTP
       - port: "80"

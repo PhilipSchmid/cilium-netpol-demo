@@ -1,13 +1,37 @@
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: "host-all"
+  name: host-all
 spec:
-  description: "Cilium host policy for all nodes"
-  nodeSelector:
-    matchLabels:
-      kubernetes.io/os: linux
+  description: Cilium host policy for all nodes
+  nodeSelector: {}
   ingress:
+  # System management: ALlow SSH access from jumphost
+  - fromCIDR:
+    - 10.1.101.110/32
+    toPorts:
+    - ports:
+      - port: "22"
+        protocol: TCP
+  # System monitoring: Allow ping to hosts (also required by Cilium control plane agent ICMP health checks)
+  - icmps:
+    - fields:
+      - type: 8
+        family: IPv4
+  # KAPI Control plane connectivity for Kubelet Pod log streaming
+  - fromEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: "10250"
+        protocol: TCP
+  # Cilium control plane agent HTTP health checks
+  - fromEntities:
+    - remote-node
+    toPorts:
+    - ports:
+      - port: "4240"
+        protocol: TCP
   # Data plane inter-node connectivity
   - fromEntities:
     - host
@@ -20,62 +44,36 @@ spec:
         # Cilium WireGuard
       - port: "51871"
         protocol: UDP
-  # Control plane health ICMP inter-node connectivity
-  - fromEntities:
-    - health
-    - host
-    - remote-node
-    # Allow ICMP health checks
-    icmps:
-    - fields:
-      - type: 8
-        family: IPv4
-  # Control plane health inter-node connectivity
-  - fromEntities:
-    - health
-    - host
-    - remote-node
+  # Cilium Hubble relay access to Cilium agent Hubble peers
+  - fromEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: kube-system
+        k8s:app.kubernetes.io/name: hubble-relay
     toPorts:
     - ports:
-        # Inter-node Cilium cluster health checks (please also have a look at the appendix for further details)
-      - port: "4240"
+      - port: "4244"
         protocol: TCP
-        # Cilium cilium-agent health status API
-      - port: "9876"
-        protocol: TCP
-  # Control plane connectivity from cluster
-  - fromEntities:
-    - cluster
+  # Allow Prometheus to scrape Kubelet from host network
+  - fromEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: monitoring
     toPorts:
     - ports:
-        # Prometheus Node Exporter
+      # Node-Exporter Prometheus metrics
       - port: "9100"
         protocol: TCP
-        # Cilium Agent Prometheus metrics
+      # cilium-agent Prometheus metrics
       - port: "9962"
         protocol: TCP
-        # Cilium Operator Prometheus metrics
+      # cilium-operator Prometheus metrics
       - port: "9963"
         protocol: TCP
-        # Cilium Envoy Prometheus metrics
+      # cilium-envoy Prometheus metrics
       - port: "9964"
         protocol: TCP
-        # Cilium Hubble Prometheus metrics
+      # Cilium Hubble Prometheus metrics
       - port: "9965"
         protocol: TCP
-        # Kubelet metrics
+      # Kubelet Prometheus metrics
       - port: "10250"
-        protocol: TCP
-        # Nginx ingress metrics
-      - port: "10254"
-        protocol: TCP
-  # System access from external and nodes
-  - fromEntities:
-    - host
-    - remote-node
-    - world
-    toPorts:
-    - ports:
-        # SSH
-      - port: "22"
         protocol: TCP

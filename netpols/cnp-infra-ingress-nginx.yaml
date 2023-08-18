@@ -1,0 +1,91 @@
+# -- Default rule
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-within-namespace
+  namespace: ingress-nginx
+spec:
+  description: Allow NS internal traffic, block everything else
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  egress:
+  - toEndpoints:
+    - {}
+# -- Egress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: nginx-ingress-to-kapi
+  namespace: ingress-nginx
+spec:
+  description: Allow Nginx ingress controller to reach KAPI
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: ingress-nginx
+  egress:
+  - toEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: "6443"
+        protocol: TCP
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: nginx-to-services
+spec:
+  description: Allow Nginx ingress controller to access all K8s services of namespaces which expose them
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: ingress-nginx
+      k8s:io.kubernetes.pod.namespace: ingress-nginx
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        k8s:io.cilium.k8s.namespace.labels.exposed: "true"
+# -- Ingress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: all-to-nginx
+  namespace: ingress-nginx
+spec:
+  description: Allow accessing Nginx ingress controller from everywhere
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: ingress-nginx
+  ingress:
+  - fromEntities:
+    - all
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+      - port: "443"
+        protocol: TCP
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: scrape-nginx-ingress-metrics
+  namespace: ingress-nginx
+spec:
+  description: Allow Prometheus to scrape the Nginx ingress controller metrics
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: ingress-nginx
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        k8s:app.kubernetes.io/name: prometheus
+        k8s:io.kubernetes.pod.namespace: monitoring
+    toPorts:
+    - ports:
+      - port: "10254"
+        protocol: TCP

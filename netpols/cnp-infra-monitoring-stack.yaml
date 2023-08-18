@@ -1,0 +1,193 @@
+# -- Default rule
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-within-namespace
+  namespace: monitoring
+spec:
+  description: Allow NS internal traffic, block everything else
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  egress:
+  - toEndpoints:
+    - {}
+# -- Egress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: prometheus-to-all-metrics-scraping
+  namespace: monitoring
+spec:
+  description: Allow Prometheus to scrape /metrics HTTP endpoints from everythere
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: prometheus
+  egress:
+  - toEntities:
+    - all
+    toPorts:
+    - ports:
+      - port: "3301"
+        protocol: TCP
+      - port: "8080"
+        protocol: TCP
+      - port: "9100"
+        protocol: TCP
+      - port: "9153"
+        protocol: TCP
+      - port: "9962"
+        protocol: TCP
+      - port: "9963"
+        protocol: TCP
+      - port: "9964"
+        protocol: TCP
+      - port: "9965"
+        protocol: TCP
+      - port: "9966"
+        protocol: TCP
+      - port: "10250"
+        protocol: TCP
+      - port: "10254"
+        protocol: TCP
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: kube-prometheus-stack-to-kapi
+  namespace: monitoring
+spec:
+  description: Allow kube-prometheus-stack components to reach KAPI
+  endpointSelector:
+    matchExpressions:
+    - key: k8s:app.kubernetes.io/instance
+      operator: In
+      values:
+        - kube-prometheus-stack-prometheus
+        - kube-prometheus-stack
+  egress:
+  - toEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: "6443"
+        protocol: TCP
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: metrics-server-to-kubelet-metrics
+  namespace: monitoring
+spec:
+  description: Allow metrics-server to scrape Kubelet metrics
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: metrics-server
+  egress:
+  - toEntities:
+    - host
+    - remote-node
+    toPorts:
+    - ports:
+      - port: "10250"
+        protocol: TCP
+      rules:
+        http:
+        - method: "GET"
+          path: "/metrics"
+  - toEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: "6443"
+        protocol: TCP
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: alertmanager-to-slack-webhook
+  namespace: monitoring
+spec:
+  description: Allow alertmanager to reach Slack webhook
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: alertmanager
+  egress:
+  - toFQDNs:
+    - matchPattern: "*.slack.com"
+    toPorts:
+    - ports:
+      - port: "443"
+        protocol: TCP
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: grafana-to-kapi
+  namespace: monitoring
+spec:
+  description: Allow Grafana to reach KAPI (to get dashboard and datasource CMs) and Prometheus
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: grafana
+  egress:
+  - toEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: "6443"
+        protocol: TCP
+  - toEndpoints:
+    - matchLabels:
+        k8s:app.kubernetes.io/name: prometheus
+    toPorts:
+    - ports:
+      - port: "9090"
+        protocol: TCP
+      rules:
+        http:
+        - {}
+# -- Ingress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: nginx-to-service
+  namespace: monitoring
+spec:
+  description: Allow Nginx ingress controller to access the exposed monitoring services
+  endpointSelector:
+    matchExpressions:
+    - key: k8s:app.kubernetes.io/name
+      operator: In
+      values:
+        - alertmanager
+        - prometheus
+        - grafana
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        k8s:app.kubernetes.io/name: ingress-nginx
+        k8s:io.kubernetes.pod.namespace: ingress-nginx
+# Check why it seems this is required:
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: remote-node-to-prometheus
+  namespace: monitoring
+spec:
+  description: Allow Remote-Node to access Prometheus
+  endpointSelector:
+    matchLabels:
+      k8s:app: kube-prometheus-stack-operator
+  ingress:
+  - fromEntities:
+    - remote-node
+    toPorts:
+    - ports:
+      - port: "10250"
+        protocol: TCP

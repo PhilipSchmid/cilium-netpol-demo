@@ -1,0 +1,50 @@
+# -- Default rule
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-within-namespace
+  # Add exposed="true" label in case Nginx should expose something from this NS
+  labels:
+    exposed: "true"
+  namespace: my-namespace-xy
+spec:
+  description: Allow NS internal traffic, block everything else
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  egress:
+  - toEndpoints:
+    - {}
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: nginx-to-service
+  namespace: my-namespace-xy
+spec:
+  description: Allow Nginx ingress controller to access the app service
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        k8s:app.kubernetes.io/name: ingress-nginx
+        k8s:io.kubernetes.pod.namespace: ingress-nginx
+    # # Toggle comment to only allow specific ports
+    # toPorts:
+    # - ports:
+    #   - port: "80"
+    #     protocol: TCP
+    #   - port: "443"
+    #     protocol: TCP
+    #   # Toggle comment to enable HTTP visibility in case the connection is unencrypted
+    #   rules:
+    #     http:
+    #     - {}
+
+# -- Egress rules
+# TBD by app / NS owners
+
+# -- Ingress rules
+# TBD by app / NS owners

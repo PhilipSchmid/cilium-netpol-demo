@@ -2,18 +2,14 @@
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: cluster-dns-visibility
+  name: dns-visibility
 spec:
+  description: Globally allow DNS traffic to the K8s internal coredns. Otherwise this would not work anymore after you apply another egress CNP / CCNP in the user workload namespace / cluster.
   endpointSelector: {}
-#    matchExpressions:
-#    - key: k8s:io.kubernetes.pod.namespace
-#      operator: NotIn
-#      values:
-#      - kube-system
   egress:
-  # Allow all egress traffic to not break stuff. Remove for zero trust approach on the cluster!
-  - toEntities:
-    - all
+  # # Allow all egress traffic to not break stuff. Remove for zero trust approach on the cluster!
+  # - toEntities:
+  #   - all
   # Allow DNS to coredns and matchPattern to activate DNS visibility
   - toEndpoints:
     - matchLabels:

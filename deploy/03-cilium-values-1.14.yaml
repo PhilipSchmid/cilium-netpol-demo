@@ -23,7 +23,8 @@ ipam:
   operator:
     clusterPoolIPv4PodCIDRList:
     - ${POD_CIDR}
-    clusterPoolIPv4MaskSize: 24
+    # Let's lower this from the default value 24 to not waste too many IPs (Kubelet defaults to 110 Pods/Node)
+    clusterPoolIPv4MaskSize: 25
 
 # Routing/encapsulation mode
 tunnel: vxlan

@@ -1,0 +1,53 @@
+# -- Default rule
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-within-namespace
+  namespace: goldpinger
+spec:
+  description: Allow NS internal traffic, block everything else
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  egress:
+  - toEndpoints:
+    - {}
+# -- Egress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: goldpinger-to-kapi
+  namespace: goldpinger
+spec:
+  description: Allow Goldpinger to reach KAPI
+  endpointSelector:
+    matchLabels:
+      k8s:app: goldpinger
+  egress:
+  - toEntities:
+    - host
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: "6443"
+        protocol: TCP
+# -- Ingress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: nginx-to-service
+  namespace: goldpinger
+spec:
+  description: Allow Nginx ingress controller to access the goldpinger service
+  endpointSelector:
+    matchLabels:
+      k8s:app: goldpinger
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        k8s:app.kubernetes.io/name: ingress-nginx
+        k8s:io.kubernetes.pod.namespace: ingress-nginx
