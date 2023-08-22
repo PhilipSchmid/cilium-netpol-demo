@@ -64,9 +64,9 @@ kubectl apply -f cnp-infra-goldpinger.yaml
 ```
 
 ## Cluster-wide Policies
-The goal should to deploy new user workload namespaces with only a very limited set of default policies. Hence, you can leverage CiliumClusterwideNetworkPolicies (CCNPs) to already permit a basic rule set for common services like ingress or monitoring.
+The goal should be to deploy new user workload namespaces with only a very small set of default policies. Hence, you can leverage CiliumClusterwideNetworkPolicies (CCNPs) to predefine permits of common services like ingress or monitoring to communicate with the new namespace.
 
-In addition, you can leverage CCNPs to by default eenable Cilium's DNS visibility by applying an egress policy that uses `toPorts[*].rules.dns`.
+In addition, you can leverage CCNPs to enable Cilium's DNS visibility by applying an egress policy that uses `toPorts[*].rules.dns`.
 
 ```bash
 kubectl apply -f ccnp-global-infra.yaml
@@ -101,6 +101,8 @@ Have a look at the following template that could be used for new user workload n
   - Allow all ingress and egress traffic **within** the namespace
   - Optional: Additional application specific CNPs to explicitly allow connections to and from namespace-external sources/destinations.
 
+Check out `demo-app-podinfo.sh` to simulate the deployment of new user workload.
+
 ## Troubleshooting
 To troubleshoot connectivity issues or false positive denies, use Hubble UI and especially Hubble CLI. Hubble can either be directly used within a Cilium agent pod (only sees node local traffic) or in an even more powerful way, via the dedicated [Hubble CLI](https://docs.cilium.io/en/stable/gettingstarted/hubble_setup/#install-the-hubble-client). This Hubble CLI then needs to point to the Hubble-Relay service which aggregates the flows from all Cilium agents / nodes.
 
@@ -112,7 +114,7 @@ kubectl port-forward -n kube-system svc/hubble-relay 4245:443
 hubble observe -t policy-verdict -f --verdict DROPPED
 ```
 
-Improve your Hubble CLI outputs even further by using additional filtering constraints (issue `hubble observe --help` to see the full list):
+Improve your Hubble CLI outputs even further by using additional filtering constraints (issue `hubble observe --help` to see all available options):
 - `--ip` / `--to-ip` / `--from-ip`
 - `-n` / `--namespace` / `--to-namespace` / `--from-namespace`
 - `--port` / `--to-pod` / `--from-pod`
