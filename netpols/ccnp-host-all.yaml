@@ -53,27 +53,33 @@ spec:
     - ports:
       - port: "4244"
         protocol: TCP
-  # Allow Prometheus to scrape Kubelet from host network
+  # Allow coredns to reach hosts (e.g. for dnsmasq)
+  - fromEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: kube-system
+        k8s:k8s-app: kube-dns
+  # Allow Prometheus to scrape metrics from hosts
   - fromEndpoints:
     - matchLabels:
         k8s:io.kubernetes.pod.namespace: monitoring
-    toPorts:
-    - ports:
-      # Node-Exporter Prometheus metrics
-      - port: "9100"
-        protocol: TCP
-      # cilium-agent Prometheus metrics
-      - port: "9962"
-        protocol: TCP
-      # cilium-operator Prometheus metrics
-      - port: "9963"
-        protocol: TCP
-      # cilium-envoy Prometheus metrics
-      - port: "9964"
-        protocol: TCP
-      # Cilium Hubble Prometheus metrics
-      - port: "9965"
-        protocol: TCP
-      # Kubelet Prometheus metrics
-      - port: "10250"
-        protocol: TCP
+        k8s:app.kubernetes.io/name: prometheus
+    # toPorts:
+    # - ports:
+    #   # Node-Exporter Prometheus metrics
+    #   - port: "9100"
+    #     protocol: TCP
+    #   # cilium-agent Prometheus metrics
+    #   - port: "9962"
+    #     protocol: TCP
+    #   # cilium-operator Prometheus metrics
+    #   - port: "9963"
+    #     protocol: TCP
+    #   # cilium-envoy Prometheus metrics
+    #   - port: "9964"
+    #     protocol: TCP
+    #   # Cilium Hubble Prometheus metrics
+    #   - port: "9965"
+    #     protocol: TCP
+    #   # Kubelet Prometheus metrics
+    #   - port: "10250"
+    #     protocol: TCP

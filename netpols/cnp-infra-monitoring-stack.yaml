@@ -17,42 +17,23 @@ spec:
 # -- Egress rules
 ---
 apiVersion: "cilium.io/v2"
-kind: CiliumNetworkPolicy
+kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: prometheus-to-all-metrics-scraping
-  namespace: monitoring
+  name: prometheus-to-metrics
 spec:
-  description: Allow Prometheus to scrape /metrics HTTP endpoints from everythere
+  description: Allow Prometheus to scrape all infra metric endpoints and the ones of namespaces which expose them
   endpointSelector:
     matchLabels:
       k8s:app.kubernetes.io/name: prometheus
+      k8s:io.kubernetes.pod.namespace: monitoring
   egress:
   - toEntities:
-    - all
-    toPorts:
-    - ports:
-      - port: "3301"
-        protocol: TCP
-      - port: "8080"
-        protocol: TCP
-      - port: "9100"
-        protocol: TCP
-      - port: "9153"
-        protocol: TCP
-      - port: "9962"
-        protocol: TCP
-      - port: "9963"
-        protocol: TCP
-      - port: "9964"
-        protocol: TCP
-      - port: "9965"
-        protocol: TCP
-      - port: "9966"
-        protocol: TCP
-      - port: "10250"
-        protocol: TCP
-      - port: "10254"
-        protocol: TCP
+    - host
+    - remote-node
+    - kube-apiserver
+  - toEndpoints:
+    - matchLabels:
+        k8s:io.cilium.k8s.namespace.labels.metrics: "true"
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy
@@ -151,6 +132,8 @@ spec:
         http:
         - {}
 # -- Ingress rules
+# Only required because we want to be extra cautious with the namespace 'monitoring' compared to other user workload namespaces.
+# The alternative would be to label 'monitoring' with 'exposed=true'.
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy
@@ -172,7 +155,6 @@ spec:
     - matchLabels:
         k8s:app.kubernetes.io/name: ingress-nginx
         k8s:io.kubernetes.pod.namespace: ingress-nginx
-# Check why it seems this is required:
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy

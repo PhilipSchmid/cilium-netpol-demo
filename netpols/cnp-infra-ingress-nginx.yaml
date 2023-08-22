@@ -69,6 +69,8 @@ spec:
         protocol: TCP
       - port: "443"
         protocol: TCP
+# Only required because we want to be extra cautious with the namespace 'ingress-nginx' compared to other user workload namespaces.
+# The alternative would be to label 'ingress-nginx' with 'metrics=true'.
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy

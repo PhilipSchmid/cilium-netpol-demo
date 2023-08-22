@@ -51,6 +51,24 @@ spec:
     - ports:
       - port: "443"
         protocol: TCP
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: cert-manager-to-own-domain
+  namespace: cert-manager
+spec:
+  description: Allow Cert-Manager to reach own URLs for the verification check
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: cert-manager
+  egress:
+  - toFQDNs:
+    - matchPattern: "*.philip-netpol-demo.cilium.rocks"
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
 # -- Ingress rules
 ---
 apiVersion: "cilium.io/v2"
