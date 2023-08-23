@@ -5,7 +5,7 @@
 # - Since we enabled TLS for Hubble, we need to configure Hubble CLI accordingly
 # - Get Hubble CLI from here: https://docs.cilium.io/en/stable/gettingstarted/hubble_setup/#install-the-hubble-client
 hubble config set tls true
-hubble config set tls tls-ca-cert-files /path/to/cilium-netpol-demo/deploy/cilium-ca-crt.pem
+hubble config set tls-ca-cert-files /path/to/cilium-netpol-demo/deploy/cilium-ca-crt.pem
 hubble config set tls-server-name "*.hubble-relay.cilium.io"
 # Open the port-forwarding in a separate shell:
 kubectl port-forward -n kube-system svc/hubble-relay 4245:443

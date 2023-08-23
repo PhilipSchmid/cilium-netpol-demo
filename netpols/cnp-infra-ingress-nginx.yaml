@@ -69,25 +69,3 @@ spec:
         protocol: TCP
       - port: "443"
         protocol: TCP
-# Only required because we want to be extra cautious with the namespace 'ingress-nginx' compared to other user workload namespaces.
-# The alternative would be to label 'ingress-nginx' with 'metrics=true'.
----
-apiVersion: "cilium.io/v2"
-kind: CiliumNetworkPolicy
-metadata:
-  name: scrape-nginx-ingress-metrics
-  namespace: ingress-nginx
-spec:
-  description: Allow Prometheus to scrape the Nginx ingress controller metrics
-  endpointSelector:
-    matchLabels:
-      k8s:app.kubernetes.io/name: ingress-nginx
-  ingress:
-  - fromEndpoints:
-    - matchLabels:
-        k8s:app.kubernetes.io/name: prometheus
-        k8s:io.kubernetes.pod.namespace: monitoring
-    toPorts:
-    - ports:
-      - port: "10254"
-        protocol: TCP
