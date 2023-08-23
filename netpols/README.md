@@ -31,7 +31,7 @@ kubectl apply -f ccnp-host-cp.yaml -f ccnp-host-all.yaml -f ccnp-host-infra.yaml
 # In addition, check for flows from a cluster-wide perspective.
 hubble observe -t policy-verdict -f --identity 1 --verdict AUDIT --verdict DROPPED
 
-# If you don't see any relevant audit/dropped event, activate Cilium host policiy enforcement:
+# If you don't see any relevant audit/dropped event, activate Cilium host policiy enforcement. HEADS-UP: Currently, there's a bug where the connections might get interrupted shortly (see https://github.com/cilium/cilium/issues/25448). A workaround to mitigate this would be to enable, disable, and reenable host policy enforcement.
 ./host-enforcement-to-enforce.sh
 ```
 
