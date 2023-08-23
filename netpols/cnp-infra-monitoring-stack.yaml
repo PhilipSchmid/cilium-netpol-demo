@@ -132,29 +132,6 @@ spec:
         http:
         - {}
 # -- Ingress rules
-# Only required because we want to be extra cautious with the namespace 'monitoring' compared to other user workload namespaces.
-# The alternative would be to label 'monitoring' with 'exposed=true'.
----
-apiVersion: "cilium.io/v2"
-kind: CiliumNetworkPolicy
-metadata:
-  name: nginx-to-service
-  namespace: monitoring
-spec:
-  description: Allow Nginx ingress controller to access the exposed monitoring services
-  endpointSelector:
-    matchExpressions:
-    - key: k8s:app.kubernetes.io/name
-      operator: In
-      values:
-        - alertmanager
-        - prometheus
-        - grafana
-  ingress:
-  - fromEndpoints:
-    - matchLabels:
-        k8s:app.kubernetes.io/name: ingress-nginx
-        k8s:io.kubernetes.pod.namespace: ingress-nginx
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy
