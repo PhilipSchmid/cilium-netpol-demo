@@ -58,28 +58,17 @@ spec:
     - matchLabels:
         k8s:io.kubernetes.pod.namespace: kube-system
         k8s:k8s-app: kube-dns
-  # Allow Prometheus to scrape metrics from hosts
+  # Allow Prometheus to scrape metrics from hosts on various ports
   - fromEndpoints:
     - matchLabels:
         k8s:io.kubernetes.pod.namespace: monitoring
         k8s:app.kubernetes.io/name: prometheus
-    # toPorts:
-    # - ports:
-    #   # Node-Exporter Prometheus metrics
-    #   - port: "9100"
-    #     protocol: TCP
-    #   # cilium-agent Prometheus metrics
-    #   - port: "9962"
-    #     protocol: TCP
-    #   # cilium-operator Prometheus metrics
-    #   - port: "9963"
-    #     protocol: TCP
-    #   # cilium-envoy Prometheus metrics
-    #   - port: "9964"
-    #     protocol: TCP
-    #   # Cilium Hubble Prometheus metrics
-    #   - port: "9965"
-    #     protocol: TCP
-    #   # Kubelet Prometheus metrics
-    #   - port: "10250"
-    #     protocol: TCP
+  # Allow Metrics-Server to reach Kubelet metrics
+  - fromEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: monitoring
+        k8s:app.kubernetes.io/name: metrics-server
+    toPorts:
+    - ports:
+      - port: "10250"
+        protocol: TCP

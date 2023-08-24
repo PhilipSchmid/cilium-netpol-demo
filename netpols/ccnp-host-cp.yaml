@@ -16,8 +16,6 @@ spec:
         protocol: TCP
   # ETCD control plane connectivity from nodes
   - fromEntities:
-    - host
-    - remote-node
     - kube-apiserver
     toPorts:
       - ports:

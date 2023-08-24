@@ -75,10 +75,6 @@ spec:
     - ports:
       - port: "10250"
         protocol: TCP
-      rules:
-        http:
-        - method: "GET"
-          path: "/metrics"
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy
@@ -142,10 +138,14 @@ metadata:
   name: remote-node-to-prometheus
   namespace: monitoring
 spec:
-  description: Allow Remote-Node to access Prometheus
+  description: Allow Remote-Node to access Prometheus and metrics-server
   endpointSelector:
-    matchLabels:
-      k8s:app: kube-prometheus-stack-operator
+    matchExpressions:
+    - key: k8s:app.kubernetes.io/instance
+      operator: In
+      values:
+        - kube-prometheus-stack
+        - metrics-server
   ingress:
   - fromEntities:
     - remote-node
