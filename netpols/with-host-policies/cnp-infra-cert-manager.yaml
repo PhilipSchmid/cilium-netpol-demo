@@ -1,0 +1,92 @@
+# -- Default rule
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-within-namespace
+  namespace: cert-manager
+spec:
+  description: Allow NS internal traffic, block everything else
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  egress:
+  - toEndpoints:
+    - {}
+# -- Egress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: cert-manager-to-kapi
+  namespace: cert-manager
+spec:
+  description: Allow all Cert-Manager components to reach KAPI
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/instance: cert-manager
+  egress:
+  - toEntities:
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: "6443"
+        protocol: TCP
+# Only required in case Let's Encrypt (Cluster)Issuer are used:
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: cert-manager-to-letsencrypt
+  namespace: cert-manager
+spec:
+  description: Allow Cert-Manager to reach Let's Encrypt servers
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: cert-manager
+  egress:
+  - toFQDNs:
+    - matchPattern: "*.api.letsencrypt.org"
+    toPorts:
+    - ports:
+      - port: "443"
+        protocol: TCP
+# Only required in case Let's Encrypt (Cluster)Issuer are used:
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: cert-manager-to-own-domain
+  namespace: cert-manager
+spec:
+  description: Allow Cert-Manager to reach own URLs for the verification check
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: cert-manager
+  egress:
+  - toFQDNs:
+    - matchPattern: "*.philip-netpol-demo.cilium.rocks"
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+# -- Ingress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: kapi-to-cert-manager-webhook
+  namespace: cert-manager
+spec:
+  description: Allow cluster to reach the Cert-Manager webhook
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: webhook
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: "10250"
+        protocol: TCP

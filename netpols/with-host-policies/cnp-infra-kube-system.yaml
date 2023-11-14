@@ -1,0 +1,36 @@
+# -- Default rule
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-to-everywhere
+  namespace: kube-system
+spec:
+  description: Allow ingress traffic within the namespace and egress to everywhere
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  egress:
+  - toEntities:
+    - all
+# -- Ingress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-to-coredns
+  namespace: kube-system
+spec:
+  description: Allow ingress to coredns from everywhere
+  endpointSelector:
+    matchLabels:
+      k8s:io.kubernetes.pod.namespace: kube-system
+      k8s:k8s-app: kube-dns
+  ingress:
+  - fromEntities:
+    - all
+    toPorts:
+    - ports:
+      - port: "53"
+        protocol: ANY

@@ -1,4 +1,5 @@
 # Demo Infrastructure Deployment
+
 For this demo infrastructure, some Isovalent internal Terraform modules were used to spin up a Kubeadm-based K8s cluster and installing Cilium. Nevertheless, you can still basically do the same in a manual way by following the [kubeadm Cluster Setup](https://gist.github.com/PhilipSchmid/e34a725d5836d21432fd10b0709a5c4a) guide. Ensure you're aware of the following things:
 
 - kube-proxy shouldn't be installed, as we use Cilium's KubeProxyReplacement.
@@ -8,6 +9,8 @@ For this demo infrastructure, some Isovalent internal Terraform modules were use
 Also, check the following files to see how things are deployed:
 - Cilium Helm values: `deploy/03-cilium-values-1.14.yaml`
 - Infrastructure components: `deploy/scripts/deploy-uc.sh` 
+
+## Troubleshooting
 
 SSH access via SSH jumphost:
 ```bash
@@ -21,3 +24,8 @@ ssh -i ~/.ssh/id_ed25519.pub \
       rocky@<ssh-jumphost-public-ip>" \
     rocky@<node-private-ip>
 ```
+
+## Terraform Module Doc
+<!-- BEGIN_TF_DOCS -->
+
+<!-- END_TF_DOCS -->

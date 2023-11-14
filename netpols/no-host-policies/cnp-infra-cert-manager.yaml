@@ -33,6 +33,7 @@ spec:
     - ports:
       - port: "6443"
         protocol: TCP
+# Only required in case Let's Encrypt (Cluster)Issuer are used:
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy
@@ -51,6 +52,7 @@ spec:
     - ports:
       - port: "443"
         protocol: TCP
+# Only required in case Let's Encrypt (Cluster)Issuer are used:
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy

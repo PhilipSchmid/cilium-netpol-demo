@@ -1,5 +1,5 @@
 module "kubeadm" {
-  source = "git::ssh://git@github.com/isovalent/terraform-aws-kubeadm.git?ref=v2.4"
+  source = "git::ssh://git@github.com/isovalent/terraform-aws-kubeadm.git?ref=v2.6.1"
 
   vpc_id                             = module.vpc.id
   ami_name_filter                    = var.ami_name_filter
