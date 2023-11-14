@@ -18,10 +18,10 @@ spec:
   - fromEntities:
     - kube-apiserver
     toPorts:
-      - ports:
-          # etcd client port
-        - port: "2379"
-          protocol: TCP
-          # etcd peer communication port
-        - port: "2380"
-          protocol: TCP
+    - ports:
+        # etcd client port
+      - port: "2379"
+        protocol: TCP
+        # etcd peer communication port
+      - port: "2380"
+        protocol: TCP

@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: "terraform"
+    directory: /deploy
+    schedule:
+      interval: "daily"
+      time: "23:00"
+      timezone: "Europe/Zurich"
+    open-pull-requests-limit: 3
+    rebase-strategy: "disabled"
+    labels:
+      - ci/dependabot
+      - kind/enhancement

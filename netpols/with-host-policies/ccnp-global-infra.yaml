@@ -1,0 +1,77 @@
+# -- Egress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: global-infra-dns
+spec:
+  description: Allow coredns access from everywhere
+  endpointSelector: {}
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: kube-system
+        k8s:k8s-app: kube-dns
+    toPorts:
+    - ports:
+      - port: "53"
+        protocol: ANY
+      rules:
+        dns:
+        - matchPattern: "*"
+# -- Ingress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: global-infra-cilium-health
+spec:
+  description: Allow Cilium health checks
+  endpointSelector: {}
+  ingress:
+  # Cilium control plane health endpoint HTTP checks
+  - fromEntities:
+    - remote-node
+    toPorts:
+    - ports:
+      - port: "4240"
+        protocol: ANY
+  # Cilium control plane health endpoint ICMP checks
+  - fromEntities:
+    - remote-node
+    icmps:
+    - fields:
+      - type: 8
+        family: IPv4
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: global-infra-prometheus
+spec:
+  description: Globally allow connections from Prometheus to labeled namespaces
+  endpointSelector:
+    matchLabels:
+      k8s:io.cilium.k8s.namespace.labels.metrics: "true"
+  ingress:
+  # Allow Prometheus to scrape everything
+  - fromEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: monitoring
+        k8s:app.kubernetes.io/name: prometheus
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: global-infra-nginx
+spec:
+  description: Globally allow connections from Nginx ingress controller to labeled namespaces
+  endpointSelector:
+    matchLabels:
+      k8s:io.cilium.k8s.namespace.labels.exposed: "true"
+  ingress:
+  # Allow Nginx ingress to reach everything
+  - fromEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: ingress-nginx
+        k8s:app.kubernetes.io/name: ingress-nginx

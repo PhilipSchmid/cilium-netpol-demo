@@ -43,7 +43,6 @@ spec:
     - fields:
       - type: 8
         family: IPv4
-# Heads-up: In case you remove the metrics label again from the NS, check https://github.com/cilium/cilium/issues/27626.
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy
@@ -60,7 +59,6 @@ spec:
     - matchLabels:
         k8s:io.kubernetes.pod.namespace: monitoring
         k8s:app.kubernetes.io/name: prometheus
-# Heads-up: In case you remove the exposed label again from the NS, check https://github.com/cilium/cilium/issues/27626.
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumClusterwideNetworkPolicy

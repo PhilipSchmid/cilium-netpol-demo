@@ -47,8 +47,8 @@ spec:
     - key: k8s:app.kubernetes.io/instance
       operator: In
       values:
-        - kube-prometheus-stack-prometheus
-        - kube-prometheus-stack
+      - kube-prometheus-stack-prometheus
+      - kube-prometheus-stack
   egress:
   - toEntities:
     - kube-apiserver
@@ -93,6 +93,7 @@ spec:
     - ports:
       - port: "6443"
         protocol: TCP
+# Only required if Alertmanager is connected to Slack.
 ---
 apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy
@@ -144,8 +145,8 @@ spec:
     - key: k8s:app.kubernetes.io/instance
       operator: In
       values:
-        - kube-prometheus-stack
-        - metrics-server
+      - kube-prometheus-stack
+      - metrics-server
   ingress:
   - fromEntities:
     - remote-node

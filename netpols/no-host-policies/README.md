@@ -1,4 +1,4 @@
-# Demo Network Policies
+# Demo Network Policies (without Host Policies)
 
 ## Generic Hubble Configuration for Visibility
 ```bash
@@ -11,28 +11,6 @@ hubble config set tls-server-name "*.hubble-relay.cilium.io"
 kubectl port-forward -n kube-system svc/hubble-relay 4245:443
 # Finally check Hubble CLI's connection and the flows:
 hubble status
-```
-
-## Cilium Host Policies
-```bash
-# Activate audit mode safe guard before applying Cilium host policies
-# IMPORTANT: This configuration change is only temporarily until the Cilium agent pods are restarted the next time! Ensure to fix all false positives or remove the Cilium host policies before restarting any Cilium agent pod or node!
-./host-enforcement-to-audit.sh
-
-# Check current enforcement status:
-./host-enforcement-status.sh
-
-# Apply Cilium host policies:
-kubectl apply -f ccnp-host-cp.yaml -f ccnp-host-all.yaml -f ccnp-host-infra.yaml
-
-# Wait a few minutes (Hubble flow cache) and then check if communications flows would be dropped if you weren't running in audit mode:
-./host-enforcement-verification.sh
-
-# In addition, check for flows from a cluster-wide perspective.
-hubble observe -t policy-verdict -f --identity 1 --verdict AUDIT --verdict DROPPED
-
-# If you don't see any relevant audit/dropped event, activate Cilium host policiy enforcement. HEADS-UP: Currently, there's a bug where the connections might get interrupted shortly (see https://github.com/cilium/cilium/issues/25448). A workaround to mitigate this would be to enable, disable, and reenable host policy enforcement.
-./host-enforcement-to-enforce.sh
 ```
 
 ## Infrastructure Components
@@ -59,8 +37,11 @@ kubectl apply -f cnp-infra-cert-manager.yaml
 # Kube Prometheus Stack
 kubectl apply -f cnp-infra-monitoring-stack.yaml
 
-# Goldpinger:
+# Goldpinger (only in case Goldpinger is deployed on the cluster):
 kubectl apply -f cnp-infra-goldpinger.yaml
+
+# Finally, check for wrongly dropped flows:
+hubble observe -t policy-verdict -f --verdict DROPPED
 ```
 
 ## Cluster-wide Policies
@@ -121,6 +102,5 @@ Improve your Hubble CLI outputs even further by using additional filtering const
 - `--node-name`
 
 ## Sources:
-- https://docs.cilium.io/en/stable/security/host-firewall/
 - https://docs.cilium.io/en/stable/gettingstarted/hubble_setup/#install-the-hubble-client
 - https://docs.cilium.io/en/stable/gettingstarted/hubble_cli/#hubble-cli

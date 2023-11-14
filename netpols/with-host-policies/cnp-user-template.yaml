@@ -1,0 +1,35 @@
+# -- User workload NS creation
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: my-namespace-xy
+  # Customized labels
+  # - Add exposed="true" label in case Nginx should expose something from this NS
+  # - Add metrics="true" label in case Prometheus should scrape metrics from this NS
+  labels:
+    exposed: "true"
+    metrics: "true"
+
+# -- Default rule
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-within-namespace
+  namespace: my-namespace-xy
+spec:
+  description: Allow NS internal traffic, block everything else
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  egress:
+  - toEndpoints:
+    - {}
+
+# -- Egress rules
+# TBD by app / NS owners
+
+# -- Ingress rules
+# TBD by app / NS owners

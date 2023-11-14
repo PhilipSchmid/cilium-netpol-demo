@@ -1,0 +1,38 @@
+# Only in case Goldpinger is deployed on the cluster.
+# -- Default rule
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-within-namespace
+  namespace: goldpinger
+spec:
+  description: Allow NS internal traffic, block everything else
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  egress:
+  - toEndpoints:
+    - {}
+# Only in case Goldpinger is deployed on the cluster.
+# -- Egress rules
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: goldpinger-to-kapi
+  namespace: goldpinger
+spec:
+  description: Allow Goldpinger to reach KAPI
+  endpointSelector:
+    matchLabels:
+      k8s:app: goldpinger
+  egress:
+  - toEntities:
+    - host
+    - kube-apiserver
+    toPorts:
+    - ports:
+      - port: "6443"
+        protocol: TCP
